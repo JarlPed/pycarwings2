@@ -73,7 +73,12 @@ import base64
 from Crypto.Cipher import Blowfish
 import binascii
 
-BASE_URL = "https://gdcportalgw.its-mo.com/gworchest_160803A/gdc/"
+from datetime import datetime
+# conduct the TODO datetime
+import getpass
+
+
+BASE_URL = "https://gdcportalgw.its-mo.com/api_v190426_NE/gdc/"
 
 log = logging.getLogger(__name__)
 
@@ -110,7 +115,7 @@ class Session(object):
 
 
 	def _request(self, endpoint, params):
-		params["initial_app_strings"] = "geORNtsZe5I4lRGjG9GZiA"
+		params["initial_app_str"] = "9s5rfKVuMrT03RtzajWNcA"
 		if self.custom_sessionid:
 			params["custom_sessionid"] = self.custom_sessionid
 		else:
@@ -146,7 +151,7 @@ class Session(object):
 		self.custom_sessionid = None
 		self.logged_in = False
 
-		response = self._request("InitialApp.php", {
+		response = self._request("InitialApp_v2.php", {
 			"RegionCode": self.region_code,
 			"lg": "en-US",
 		})
@@ -160,7 +165,7 @@ class Session(object):
 		response = self._request("UserLoginRequest.php", {
 			"RegionCode": self.region_code,
 			"UserId": self.username,
-			"Password": encodedPassword,
+			"Password": encodedPassword.decode('utf-8'),
 		})
 
 		ret = CarwingsLoginResponse(response)
@@ -278,28 +283,30 @@ class Leaf:
 	# execute time example: "2016-02-09 17:24"
 	# I believe this time is specified in GMT, despite the "tz" parameter
 	# TODO: change parameter to python datetime object(?)
-	def schedule_climate_control(self, execute_time):
+	def schedule_climate_control(self, execute_time = datetime.now ):
+		assert type(execute_time) == datetime
 		response = self.session._request_with_retry("ACRemoteNewRequest.php", {
 			"RegionCode": self.session.region_code,
 			"lg": self.session.language,
 			"DCMID": self.session.dcm_id,
 			"VIN": self.vin,
 			"tz": self.session.tz,
-			"ExecuteTime": execute_time,
-		})
+			"ExecuteTime": execute_time.isoformat(),
+			})
 		return (response["status"] == 200)
 
 	# execute time example: "2016-02-09 17:24"
 	# I believe this time is specified in GMT, despite the "tz" parameter
 	# TODO: change parameter to python datetime object(?)
-	def update_scheduled_climate_control(self, execute_time):
+	def update_scheduled_climate_control(self, execute_time = datetime.now):
+		assert type(execute_time) == datetime
 		response = self.session._request_with_retry("ACRemoteUpdateRequest.php", {
 			"RegionCode": self.session.region_code,
 			"lg": self.session.language,
 			"DCMID": self.session.dcm_id,
 			"VIN": self.vin,
 			"tz": self.session.tz,
-			"ExecuteTime": execute_time,
+			"ExecuteTime": execute_time.isoformat(),
 		})
 		return (response["status"] == 200)
 
@@ -429,3 +436,12 @@ class Leaf:
 			return CarwingsMyCarFinderResponse(response)
 
 		return None
+
+
+if __name__ == '__main__':
+    email = input('Email: ')
+    print('Password: ')
+    password = getpass.getpass()
+    
+    sess = Session(email, password, region='NE')
+    res = sess.connect()

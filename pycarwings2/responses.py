@@ -214,36 +214,35 @@ class CarwingsLoginResponse(CarwingsResponse):
 	}
 """
 class CarwingsBatteryStatusResponse(CarwingsResponse):
-	def __init__(self, status):
-		CarwingsResponse.__init__(self, status)
+    def __init__(self, status):
+        wingsResponse.__init__(self, status)
 		
 
-		self._set_timestamp(status)
-		self._set_cruising_ranges(status)
+        self._set_timestamp(status)
+        self._set_cruising_ranges(status)
                 
-		self.answer = status
+        self.answer = status
 
-		self.battery_capacity = status["batteryCapacity"]
-		self.battery_degradation = status["batteryDegradation"]
+        self.battery_capacity = status["batteryCapacity"]
+        self.battery_degradation = status["batteryDegradation"]
+        self.battery_percent = status["batteryDegradation"]
 
-		self.is_connected = ("NOT_CONNECTED" != status["pluginState"]) # fun double negative
-		self.plugin_state = status["pluginState"]
+        self.is_connected = ("NOT_CONNECTED" != status["pluginState"]) # fun double negative
+        self.plugin_state = status["pluginState"]
 
-		self.charging_status = status["chargeMode"]
+        self.charging_status = status["chargeMode"]
 
-		self.is_charging = ("YES" == status["charging"])
+        self.is_charging = ("YES" == status["charging"])
 
-		self.is_quick_charging = ("RAPIDLY_CHARGING" == status["chargeMode"])
-		self.is_connected_to_quick_charger = ("QC_CONNECTED" == status["pluginState"])
+        self.is_quick_charging = ("RAPIDLY_CHARGING" == status["chargeMode"])
+        self.is_connected_to_quick_charger = ("QC_CONNECTED" == status["pluginState"])
 
 
-		self.time_to_full_trickle = timedelta(minutes=_time_remaining(status["timeRequiredToFull"]))
-		self.time_to_full_l2 = timedelta(minutes=_time_remaining(status["timeRequiredToFull200"]))
-		self.time_to_full_l2_6kw = timedelta(minutes=_time_remaining(status["timeRequiredToFull200_6kW"]))
-
-		# 2016-12: battery degradation is always 0-12 even if battery capacity is diminished.
-		self.battery_percent = 100 * float(status["batteryDegradation"]) / 12.0
-
+        self.time_to_full_trickle = timedelta(minutes=_time_remaining(status["timeRequiredToFull"]))
+        self.time_to_full_l2 = timedelta(minutes=_time_remaining(status["timeRequiredToFull200"]))
+        self.time_to_full_l2_6kw = timedelta(minutes=_time_remaining(status["timeRequiredToFull200_6kW"]))
+        
+        
 
 """
 climate control on:
@@ -507,7 +506,7 @@ class CarwingsLatestBatteryStatusResponse(CarwingsResponse):
 	def __init__(self, status):
 		CarwingsResponse.__init__(self, status["BatteryStatusRecords"])
 		
-                self.answer = status
+        #self.answer = status
 
 		recs = status["BatteryStatusRecords"]
 
@@ -560,8 +559,8 @@ class CarwingsElectricRateSimulationResponse(CarwingsResponse):
 
 		self.total_number_of_trips = t["TotalNumberOfTrips"]
 		self.total_power_consumption = t["TotalPowerConsumptTotal"] # in kWh
-		self.total_acceleration_power_consumption = t["TotalPowerConsumptMoter"] # in kWh
-		self.total_power_regenerated_in_braking = t["TotalPowerConsumptMinus"] # in kWh
+		self.total_acceleration_power_consumption = float( t["TotalPowerConsumptMoter"] ) / 1000 # in kWh
+		self.total_power_regenerated_in_braking = float( t["TotalPowerConsumptMinus"] ) / 1000 # in kWh
 		self.total_travel_distance_km = float(t["TotalTravelDistance"]) / 1000 # assumed to be in meters?
 
 		self.total_electric_mileage = t["TotalElectricMileage"] # ???
